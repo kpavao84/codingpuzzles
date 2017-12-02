@@ -1,0 +1,18 @@
+(define (inverse-captcha captcha)
+  (define (first-last-match? captcha)
+    (= (car captcha) (car (reverse captcha))))
+  (define (iter captcha current)
+    (cond ((null? (cdr captcha)) current)
+          ((= (car captcha) (cadr captcha))
+           (iter (cdr captcha)
+                 (+ (car captcha) current)))
+          (else
+           (iter (cdr captcha) current))))
+  (if (first-last-match? captcha)
+      (iter captcha (car captcha))
+      (iter captcha 0)))
+
+(= (inverse-captcha '(1 1 2 2)) 3)
+(= (inverse-captcha '(1 1 1 1)) 4)
+(= (inverse-captcha '(1 2 3 4)) 0)
+(= (inverse-captcha '(9 1 2 1 2 1 2 9)) 9)
