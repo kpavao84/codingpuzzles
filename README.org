@@ -1,0 +1,5 @@
+* codingpuzzles
+A place for solutions to coding puzzles.
+
+Current contains:
+- [[https://adventofcode.com/2017/][Advent of Code 2017]]

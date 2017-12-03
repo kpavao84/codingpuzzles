@@ -1,3 +1,4 @@
+
 ;; Integer -> Integer
 (define (inverse-captcha captcha)
   ;; List -> Bool
