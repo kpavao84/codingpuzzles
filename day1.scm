@@ -12,11 +12,13 @@
           (else
            (iter (cdr captcha-list) current))))
 
-  (if (first-last-match? (number->list captcha))
-      (iter (number->list captcha) (car (number->list captcha)))
-      (iter (number->list captcha) 0)))
+  (let ((captcha-list (number->list captcha)))
+    (if (first-last-match? captcha-list)
+        (iter captcha-list (car captcha-list))
+        (iter captcha-list 0))))
 
-;from https://stackoverflow.com/questions/8014453/convert-number-to-list-of-digits
+
+;; from https://stackoverflow.com/questions/8014453/convert-number-to-list-of-digits
 (define (number->list n . args)
   (let ((b (if (null? args) 10 (car args))))
     (let loop ((n n) (d '()))
