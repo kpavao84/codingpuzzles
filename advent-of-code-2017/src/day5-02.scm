@@ -1,3 +1,4 @@
+
 (use-modules (ice-9 rdelim))
 
 (define (maze-steps)
