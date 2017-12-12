@@ -3,12 +3,12 @@
 
 ;; program is (make-program String Integer ListOfProgram)
 ;; a program is a tower of programs balanced on discs in a trie structure
-(define-record-type <program>
+(define-immutable-record-type <program>
   (make-program name weight disc)
   program?
-  (name      program-name)
-  (weight   program-weight   set-program-weight)
-  (disc program-disc set-program-disc))
+  (name   program-name)
+  (weight program-weight set-program-weight)
+  (disc   program-disc   set-program-disc))
 
 ;; the input:
 ;; pbga (66)
@@ -40,6 +40,32 @@
 (define ugml (make-program "ugml" 68 (cons gyxo (cons ebii (cons jptl '())))))
 (define tknk (make-program "tknk" 41 (cons ugml (cons padx (cons fwft '())))))
 
+(define record-list
+  (list pbga xhth ebii havc ktlj qoyq jptl gyxo cntj fwft padx ugml tknk))
+;; parse the input to get the program info in a list of strings
+;; this makes it easier to create records
+;; input -> (list Name Weight '(Programs))
+(define (get-program-info input)
+  (let ((split (string-split input #\space)))
+    (define (get-name)
+      (car split))
+    (define (get-weight)
+      (string-drop-right (string-drop (cadr split) 1) 1))
+    (define (get-disc)
+      (if (> (length split) 2)
+          (map (λ (c) (string-trim-right c #\,)) (cdddr split))
+          '()))
+    (list (get-name) (get-weight) (get-disc))))
+
+;; (list String) -> Program
+;; create a program from the output of get-program-info
+(define (create-program program-info)
+  (make-program (car program-info)
+                (string->number (cadr program-info))
+                (if (null? (caddr program-info))
+                    '()
+                    (caddr program-info))))
+
 ;; (list Program) -> String
 ;; return the name of the heaviest tower
 (define (heaviest-tower towers)
@@ -63,3 +89,16 @@
            (+ (add-program (car disc))
               (add-discs (cdr disc))))))
   (add-program tower))
+
+(define (find-bottom)
+  (define (generate-towers towers)
+    (let* ((line (read-line)))
+      (if (eof-object? line)
+          towers
+          (generate-towers (cons (create-program (get-program-info line))
+                                towers)))))
+
+  (generate-towers '()))
+
+(define (main-test)
+  (with-input-from-file "input.day7test.txt" find-bottom))
