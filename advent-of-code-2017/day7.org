@@ -1,0 +1,108 @@
+* =--- Day 7: Recursive Circus ---=
+Wandering further through the circuits of the computer, you come upon a tower of programs that have gotten themselves into a bit of trouble. A recursive algorithm has gotten out of hand, and now they're balanced precariously in a large tower.
+
+One program at the bottom supports the entire tower. It's holding a large disc, and on the disc are balanced several more sub-towers. At the bottom of these sub-towers, standing on the bottom disc, are other programs, each holding their own disc, and so on. At the very tops of these sub-sub-sub-...-towers, many programs stand simply keeping the disc below them balanced but with no disc of their own.
+
+You offer to help, but first you need to understand the structure of these towers. You ask each program to yell out their name, their weight, and (if they're holding a disc) the names of the programs immediately above them balancing on that disc. You write this information down (your puzzle input). Unfortunately, in their panic, they don't do this in an orderly fashion; by the time you're done, you're not sure which program gave which information.
+
+For example, if your list is the following:
+#+BEGIN_SRC 
+pbga (66)
+xhth (57)
+ebii (61)
+havc (66)
+ktlj (57)
+fwft (72) -> ktlj, cntj, xhth
+qoyq (66)
+padx (45) -> pbga, havc, qoyq
+tknk (41) -> ugml, padx, fwft
+jptl (61)
+ugml (68) -> gyxo, ebii, jptl
+gyxo (61)
+cntj (57)
+#+END_SRC
+
+
+...then you would be able to recreate the structure of the towers that looks like this:
+#+BEGIN_SRC 
+                gyxo
+              /     
+         ugml - ebii
+       /      \     
+      |         jptl
+      |        
+      |         pbga
+     /        /
+tknk --- padx - havc
+     \        \
+      |         qoyq
+      |             
+      |         ktlj
+       \      /     
+         fwft - cntj
+              \     
+                xhth
+#+END_SRC
+
+In this example, =tknk= is at the bottom of the tower (the bottom program), and is holding up =ugml=, =padx=, and =fwft=. Those programs are, in turn, holding up other programs; in this example, none of those programs are holding up any other programs, and are all the tops of their own towers. (The actual tower balancing in front of you is much larger.)
+
+Before you're ready to help them, you need to make sure your information is correct. What is the name of the bottom program?
+** DONE Solution
+In order to find the solution, I created a list of all the programs and compared that with a list of all programs being held up by discs.
+
+I could probably could clean up some of the string parsing stuff in =get-program-info=.
+#+BEGIN_SRC scheme :tangle src/day7-01.scm
+  (use-modules (ice-9 rdelim))
+
+  (define (parse-input)
+    ;; List -> (list (list String Integer ListOfInteger))
+    (define (generate-programs programs)
+      "read the input and create a list of programs"
+      (let* ((line (read-line)))
+        (if (eof-object? line)
+            programs
+            (generate-programs (cons (get-program-info line)
+                                   programs)))))
+
+    ;; String -> (list String Integer ListOfString)
+    (define (get-program-info input)
+      "parse the input into a list of strings to make it easier to create programs"
+      (let ((split (string-split input #\space)))
+        (define (get-name)
+          (car split))
+        (define (get-weight)
+          (string-drop-right (string-drop (cadr split) 1) 1))
+        (define (get-disc)
+          (if (> (length split) 2)
+              (map (λ (c) (string-trim-right c #\,)) (cdddr split))
+              '()))
+        (list (get-name) (get-weight) (get-disc))))
+
+    (generate-programs '()))
+
+  ;; (list (list String Number ListOfString)) -> ListOfString
+  (define (create-disc-list programs)
+    "create a list of all the programs in discs in a given list of programs"
+    (let ((holding-discs (map (λ (x) (car x))
+                              (filter (λ (x) (> (length (caddr x)) 0)) programs))))
+      (flatten (map (λ (x) (caddr x))
+                    (filter (λ (x) (member (car x) holding-discs)) programs)))))
+
+  (define (main)
+    (let* ((programs (with-input-from-file "input.day7.txt" parse-input))
+           (program-list (map (λ (x) (car x)) programs))
+           (disc-list (create-disc-list programs)))
+      (set-difference program-list disc-list)))
+
+
+  ;; helpers
+  (define (set-difference s1 s2)
+    (cond ((null? s1) '())
+          ((not (member (car s1) s2)) (cons (car s1) (set-difference (cdr s1) s2)))
+          (else (set-difference (cdr s1) s2))))
+
+  (define (flatten x)
+    (cond ((null? x) '())
+          ((pair? x) (append (flatten (car x)) (flatten (cdr x))))
+          (else (list x))))
+#+END_SRC

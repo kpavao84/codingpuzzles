@@ -1,3 +1,4 @@
+
 (use-modules (ice-9 rdelim))
 
 (define (parse-input)
@@ -26,12 +27,6 @@
 
   (generate-programs '()))
 
-(define (main)
-  (let* ((programs (with-input-from-file "input.day7.txt" parse-input))
-         (program-list (map (λ (x) (car x)) programs))
-         (disc-list (create-disc-list programs)))
-    (set-difference program-list disc-list)))
-
 ;; (list (list String Number ListOfString)) -> ListOfString
 (define (create-disc-list programs)
   "create a list of all the programs in discs in a given list of programs"
@@ -39,6 +34,13 @@
                             (filter (λ (x) (> (length (caddr x)) 0)) programs))))
     (flatten (map (λ (x) (caddr x))
                   (filter (λ (x) (member (car x) holding-discs)) programs)))))
+
+(define (main)
+  (let* ((programs (with-input-from-file "input.day7.txt" parse-input))
+         (program-list (map (λ (x) (car x)) programs))
+         (disc-list (create-disc-list programs)))
+    (set-difference program-list disc-list)))
+
 
 ;; helpers
 (define (set-difference s1 s2)
